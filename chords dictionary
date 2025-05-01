@@ -1,0 +1,90 @@
+# Function to generate chord progression based on key, genre, and mood
+def generate_progression():
+    global generated_chords
+
+    selected_key = key_var.get()
+    mode = mode_var.get()
+    genre = genre_var.get()
+    mood = mood_var.get()
+    
+
+    if mode == 'Major':
+        tonic = key.Key(selected_key, 'major')
+    else:
+        tonic = key.Key(selected_key, 'minor')
+
+    genre_mood_progressions = {
+        "Jazz": {
+            "Smooth": [['ii7', 'V7', 'Imaj7', 'vi7'], ['Imaj7', 'IVmaj7', 'ii7']],
+            "Energetic": [['V7', 'Imaj7', 'ii7', 'vi7'], ['ii7', 'V7', 'iii7', 'vi7']]
+        },
+        "Classical": {
+            "Dramatic": [['i', 'iv', 'V7', 'i'], ['i', 'VI', 'iv', 'V']],
+            "Peaceful": [['I', 'IV', 'V', 'I'], ['i', 'iv', 'V', 'i']]
+        },
+        "Rap": {
+            "Energetic": [['i', 'bVII', 'bVI', 'V'], ['i', 'iv', 'V', 'bVII'], ['i', 'bIII', 'bVII', 'V']],
+            "Chill": [['i', 'iv', 'v', 'VII'], ['i', 'VI', 'bVII', 'v'], ['i', 'V', 'VI', 'IV']],
+            "Dark": [['i', 'v', 'bVII', 'iv'], ['i', 'bVI', 'iv', 'bIII'], ['i', 'bIII', 'iv', 'bVII']],
+            "Uplifting": [['i', 'III', 'iv', 'V'], ['i', 'VI', 'V', 'iv'], ['i', 'VII', 'iv', 'V']]
+        },
+        "Pop": {
+            "Energetic": [['I', 'V', 'vi', 'IV'], ['I', 'IV', 'V', 'IV'], ['vi', 'IV', 'I', 'V']],
+            "Chill": [['I', 'V', 'vi'], ['I', 'IV', 'vi', 'V'], ['vi', 'IV', 'I', 'V']],
+            "Uplifting": [['I', 'vi', 'IV', 'V'], ['I', 'IV', 'vi', 'iii'], ['IV', 'I', 'V', 'vi']],
+            "Dramatic": [['vi', 'IV', 'I', 'V'], ['IV', 'I', 'V', 'vi'], ['I', 'IV', 'ii', 'V']],
+            "Mellow": [['I', 'IV', 'V', 'vi'], ['ii', 'V', 'I'], ['vi', 'IV', 'I']]
+        },
+        "Rock": {
+            "Energetic": [['I', 'IV', 'V', 'I'], ['I', 'vi', 'IV', 'V']],
+            "Mellow": [['vi', 'IV', 'I', 'V'], ['IV', 'I', 'V', 'vi']]
+        }
+    }
+
+    genre_fallback_progressions = {
+        "Jazz": [['ii7', 'V7', 'Imaj7'], ['Imaj7', 'IVmaj7', 'ii7']],
+        "Classical": [['I', 'IV', 'V', 'I'], ['i', 'iv', 'V', 'i']],
+        "Rap": [['i', 'bVII', 'bVI', 'V'], ['i', 'IV', 'v']],
+        "Pop": [['I', 'IV', 'V', 'I'], ['I', 'V', 'vi']],
+        "Rock": [['I', 'IV', 'V', 'I'], ['I', 'vi', 'IV']]
+    }
+
+    default_progressions = [['I', 'IV', 'V', 'I']]
+
+    used_fallback = False
+
+    if genre in genre_mood_progressions and mood in genre_mood_progressions[genre]:
+        progressions = genre_mood_progressions[genre][mood]
+    elif genre in genre_fallback_progressions:
+        progressions = genre_fallback_progressions[genre]
+        used_fallback = True
+    else:
+        progressions = default_progressions
+        used_fallback = True
+
+    progression = random.choice(progressions)
+
+    generated_chords = []
+
+    for rn in progression:
+        chord_obj = roman.RomanNumeral(rn, tonic)
+        chord_name = chord_obj.root().name
+        if chord_obj.quality == "major":
+            chord_name += "maj" if not chord_obj.isSeventh() else "7"
+        elif chord_obj.quality == "minor":
+            chord_name += "min" if not chord_obj.isSeventh() else "min7"
+        elif chord_obj.quality == "diminished":
+            chord_name += "dim" if not chord_obj.isSeventh() else "dim7"
+        elif chord_obj.quality == "augmented":
+            chord_name += "aug"
+        else:
+            chord_name += chord_obj.quality
+        generated_chords.append(chord_name)
+
+    toggle_progression_view()
+
+    if used_fallback:
+        result_label.config(text=result_label.cget("text") + "\n(Note: Fallback progression used for genre.)")
+
+def toggle_progression_view():
+    result_label.config(text="Chord Progression: " + ' - '.join(generated_chords))
